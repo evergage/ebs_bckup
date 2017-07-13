@@ -74,7 +74,7 @@ def lambda_handler(event, context):
             {'Key': 'InstanceName', 'Value': instance_name},
             {'Key': 'VolumeName', 'Value': vol_name},
             {'Key': 'DeviceName', 'Value': dev['DeviceName']},
-            {'key': 'BackupDate', 'Value': today_string},
+            {'Key': 'BackupDate', 'Value': today_string},
             {'Key': 'LambdaManagedSnapshot', 'Value': 'true'},
         ]
 
