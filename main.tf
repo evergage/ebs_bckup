@@ -54,7 +54,7 @@ resource "aws_lambda_function" "ebs_bckup_lambda" {
   role              = "${aws_iam_role.ebs_bckup-role-lambdarole.arn}"
   runtime           = "python2.7"
   handler           = "ebs_bckup.lambda_handler"
-  timeout           = "60"
+  timeout           = "${var.timeout}"
   publish           = true
 }
 

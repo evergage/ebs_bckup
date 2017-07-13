@@ -39,3 +39,8 @@ variable "regions" {
   type = "list"
   description = "List of regions in which this Lambda function may run. At least one region is required."
 }
+
+variable "timeout" {
+  default = "60"
+  description = "Number of seconds that the snapshotting Lambda is allowed to run. Increase if you have a large number of instances."
+}

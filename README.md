@@ -36,5 +36,6 @@ module "ebs_bckup" {
   stack_prefix     = "ebs_snapshot"
   cron_expression  = "45 1 * * ? *"
   regions          = ["eu-west-1", "eu-central-1"]
+  timeout          = 120
 }
 ```
