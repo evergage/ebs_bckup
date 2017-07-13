@@ -23,8 +23,8 @@ In your Terrafom `main.tf` call the module with the required variables.
 
 ```
 module "ebs_bckup" {
-  // It is recommended that you lock "ref" to a specific commit
-  source = "git::https://github.com/evergage/ebs_bckup.git?ref=master"
+  // It is recommended that you lock "ref" to a specific release version
+  source = "git::https://github.com/evergage/ebs_bckup.git?ref=v1.1"
   EC2_INSTANCE_TAG_NAME      = "environment"
   EC2_INSTANCE_TAG_VALUE     = "prod"
   RETENTION_DAYS             = 10
@@ -39,3 +39,7 @@ module "ebs_bckup" {
   timeout          = 120
 }
 ```
+
+# Release Instructions
+
+You must add a release "v1.#" tag pointing at the latest changes, if the changes are complete and releasable.
