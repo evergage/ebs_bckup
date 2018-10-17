@@ -50,6 +50,8 @@ def lambda_handler(event, context):
     def snapshot_ebs_volume(ec, instance, dev):
         instance_id = instance['InstanceId']
         instance_name = find_name_tag(instance)
+        tag_kind = find_kind_tag(instance)
+        tag_environment = find_environment_tag(instance)
 
         vol_id = dev['Ebs']['VolumeId']
         vol_tags_response = ec.describe_tags(
@@ -72,6 +74,8 @@ def lambda_handler(event, context):
             {'Key': 'Name', 'Value': snapshot_name},
             {'Key': 'InstanceId', 'Value': instance_id},
             {'Key': 'InstanceName', 'Value': instance_name},
+            {'Key': 'Kind', 'Value': tag_kind},
+            {'Key': 'environment', 'Value': tag_environment},
             {'Key': 'VolumeName', 'Value': vol_name},
             {'Key': 'DeviceName', 'Value': dev['DeviceName']},
             {'Key': 'BackupDate', 'Value': today_string},
@@ -91,6 +95,21 @@ def lambda_handler(event, context):
             if tag["Key"] == 'Name':
                 name = tag["Value"]
         return name
+
+    def find_kind_tag(object_with_tags):
+        kind = ''
+        for tag in object_with_tags['Tags']:
+            if tag["Key"] == 'Kind':
+                kind = tag["Value"]
+        return kind
+
+
+    def find_environment_tag(object_with_tags):
+        environment = ''
+        for tag in object_with_tags['Tags']:
+            if tag["Key"] == 'environment':
+                environment = tag["Value"]
+        return environment
 
     def transfer_eligible_tags_from_volume(snapshot_tags, vol_tags_response):
         for vol_tag_name in volume_tag_names_to_retain:
