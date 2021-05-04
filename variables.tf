@@ -41,6 +41,6 @@ variable "regions" {
 }
 
 variable "timeout" {
-  default = "60"
+  default = "600"
   description = "Number of seconds that the snapshotting Lambda is allowed to run. Increase if you have a large number of instances."
 }

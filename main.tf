@@ -52,10 +52,12 @@ resource "aws_lambda_function" "ebs_bckup_lambda" {
   filename          = "${path.module}/lambda-${var.stack_prefix}-${var.unique_name}.zip"
   source_code_hash  = "${data.archive_file.lambda_zip.output_base64sha256}"
   role              = "${aws_iam_role.ebs_bckup-role-lambdarole.arn}"
-  runtime           = "python2.7"
+  runtime           = "python3.8"
   handler           = "ebs_bckup.lambda_handler"
   timeout           = "${var.timeout}"
   publish           = true
+  memory_size       = 1024
+
 }
 
 # Run the function with CloudWatch Event cronlike scheduler
