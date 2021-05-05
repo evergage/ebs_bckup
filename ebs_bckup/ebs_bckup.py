@@ -1,9 +1,9 @@
 import datetime
 
 import boto3
-import ConfigParser
+import configparser
 
-config = ConfigParser.RawConfigParser()
+config = configparser.ConfigParser(interpolation=None)
 config.read('./vars.ini')
 
 print('Starting EBS snapshots')
