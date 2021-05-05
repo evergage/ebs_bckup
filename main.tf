@@ -3,17 +3,14 @@ terraform {
     archive = {
       source = "hashicorp/archive"
       version = "2.2.0"
-      #replacing version ~> 0.1
     }
     template = {
       source = "hashicorp/template"
       version = "2.2.0"
-      #replacing version ~> 0.1
     }
     aws = {
       source = "hashicorp/aws"
       version = "3.38.0"
-      #replacing version ~> 0.1
     }
   }
 }
