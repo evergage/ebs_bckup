@@ -1,9 +1,29 @@
+terraform {
+  required_providers {
+    archive = {
+      source = "hashicorp/archive"
+      version = "2.2.0"
+      #replacing version ~> 0.1
+    }
+    template = {
+      source = "hashicorp/template"
+      version = "2.2.0"
+      #replacing version ~> 0.1
+    }
+    aws = {
+      source = "hashicorp/aws"
+      version = "3.38.0"
+      #replacing version ~> 0.1
+    }
+  }
+}
+
 # Create the lambda role (using lambdarole.json file)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 resource "aws_iam_role" "ebs_bckup-role-lambdarole" {
   name               = "${var.stack_prefix}-role-lambdarole-${var.unique_name}"
-  assume_role_policy = "${file("${path.module}/files/lambdarole.json")}"
+  assume_role_policy = file("${path.module}/files/lambdarole.json")
 }
 
 # Apply the Policy Document we just created
@@ -11,8 +31,8 @@ resource "aws_iam_role" "ebs_bckup-role-lambdarole" {
 
 resource "aws_iam_role_policy" "ebs_bckup-role-lambdapolicy" {
   name = "${var.stack_prefix}-role-lambdapolicy-${var.unique_name}"
-  role = "${aws_iam_role.ebs_bckup-role-lambdarole.id}"
-  policy = "${file("${path.module}/files/lambdapolicy.json")}"
+  role = aws_iam_role.ebs_bckup-role-lambdarole.id
+  policy = file("${path.module}/files/lambdapolicy.json")
 }
 
 # Output the ARN of the lambda role
@@ -21,13 +41,13 @@ resource "aws_iam_role_policy" "ebs_bckup-role-lambdapolicy" {
 # Render vars.ini for Lambda function
 
 data "template_file" "vars" {
-    template = "${file("${path.module}/files/vars.ini.template")}"
-    vars {
-      EC2_INSTANCE_TAG_NAME              = "${var.EC2_INSTANCE_TAG_NAME}"
-      EC2_INSTANCE_TAG_VALUE             = "${var.EC2_INSTANCE_TAG_VALUE}"
-      RETENTION_DAYS                     = "${var.RETENTION_DAYS}"
-      VOLUME_TAG_NAMES_TO_RETAIN         = "${join(",", var.VOLUME_TAG_NAMES_TO_RETAIN)}"
-      REGIONS                            = "${join(",", var.regions)}"
+    template = file("${path.module}/files/vars.ini.template")
+    vars = {
+      EC2_INSTANCE_TAG_NAME              = var.EC2_INSTANCE_TAG_NAME
+      EC2_INSTANCE_TAG_VALUE             = var.EC2_INSTANCE_TAG_VALUE
+      RETENTION_DAYS                     = var.RETENTION_DAYS
+      VOLUME_TAG_NAMES_TO_RETAIN         = join(",", var.VOLUME_TAG_NAMES_TO_RETAIN)
+      REGIONS                            = join(",", var.regions)
     }
 }
 
@@ -36,11 +56,11 @@ data "archive_file" "lambda_zip" {
   output_path = "${path.module}/lambda-${var.stack_prefix}-${var.unique_name}.zip"
   source {
     filename  = "ebs_bckup.py"
-    content   = "${file("${path.module}/ebs_bckup/ebs_bckup.py")}"
+    content   = file("${path.module}/ebs_bckup/ebs_bckup.py")
   }
   source {
     filename  = "vars.ini"
-    content   = "${data.template_file.vars.rendered}"
+    content   = data.template_file.vars.rendered
   }
 }
 
@@ -50,11 +70,11 @@ data "archive_file" "lambda_zip" {
 resource "aws_lambda_function" "ebs_bckup_lambda" {
   function_name     = "${var.stack_prefix}_lambda_${var.unique_name}"
   filename          = "${path.module}/lambda-${var.stack_prefix}-${var.unique_name}.zip"
-  source_code_hash  = "${data.archive_file.lambda_zip.output_base64sha256}"
-  role              = "${aws_iam_role.ebs_bckup-role-lambdarole.arn}"
+  source_code_hash  = data.archive_file.lambda_zip.output_base64sha256
+  role              = aws_iam_role.ebs_bckup-role-lambdarole.arn
   runtime           = "python3.8"
   handler           = "ebs_bckup.lambda_handler"
-  timeout           = "${var.timeout}"
+  timeout           = var.timeout
   publish           = true
   memory_size       = 1024
 
@@ -72,9 +92,9 @@ resource "aws_cloudwatch_event_rule" "ebs_bckup_timer" {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 resource "aws_cloudwatch_event_target" "run_ebs_bckup_lambda" {
-    rule = "${aws_cloudwatch_event_rule.ebs_bckup_timer.name}"
-    target_id = "${aws_lambda_function.ebs_bckup_lambda.id}"
-    arn = "${aws_lambda_function.ebs_bckup_lambda.arn}"
+    rule = aws_cloudwatch_event_rule.ebs_bckup_timer.name
+    target_id = aws_lambda_function.ebs_bckup_lambda.id
+    arn = aws_lambda_function.ebs_bckup_lambda.arn
 }
 
 # Allow lambda to be called from cloudwatch
@@ -83,7 +103,7 @@ resource "aws_cloudwatch_event_target" "run_ebs_bckup_lambda" {
 resource "aws_lambda_permission" "allow_cloudwatch_to_call" {
   statement_id = "${var.stack_prefix}_AllowExecutionFromCloudWatch_${var.unique_name}"
   action = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.ebs_bckup_lambda.function_name}"
+  function_name = aws_lambda_function.ebs_bckup_lambda.function_name
   principal = "events.amazonaws.com"
-  source_arn = "${aws_cloudwatch_event_rule.ebs_bckup_timer.arn}"
+  source_arn = aws_cloudwatch_event_rule.ebs_bckup_timer.arn
 }
