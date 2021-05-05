@@ -1,9 +1,9 @@
-import ConfigParser
 import datetime
 
 import boto3
+import configparser
 
-config = ConfigParser.RawConfigParser()
+config = configparser.ConfigParser(interpolation=None)
 config.read('./vars.ini')
 
 print('Starting EBS snapshots')
@@ -22,11 +22,14 @@ def lambda_handler(event, context):
         account = event['account']
         ec = boto3.client('ec2', region_name=aws_region)
         instances = find_all_eligible_instances(ec)
+        print("Found " + str(len(instances)) + " eligible instances to snapshot.");
 
         for instance in instances:
             snapshot_instance(ec, instance)
 
+        print("Backups complete, preparing to delete snapshots.")
         purge_old_snapshots(account, ec)
+        print("Purge of previous backups complete.")
 
     def find_all_eligible_instances(ec):
         reservations = ec.describe_instances(
@@ -125,6 +128,7 @@ def lambda_handler(event, context):
             ],
         )
 
+        print("Found %d snapshots to delete." % (len(all_managed_snapshots['Snapshots'])))
         ascending_start_dates_to_delete = find_start_dates_to_delete(all_managed_snapshots)
 
         if len(ascending_start_dates_to_delete) > 0:
@@ -133,6 +137,7 @@ def lambda_handler(event, context):
             delete_snapshots_older_than(ec, last_start_date_to_delete, all_managed_snapshots)
 
     def find_start_dates_to_delete(all_managed_snapshots):
+        print("Determining from which dates to delete.");
         start_dates_set = set()
         for snap in all_managed_snapshots['Snapshots']:
             start_dates_set.add(snap['StartTime'].date())
