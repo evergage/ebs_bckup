@@ -17,7 +17,7 @@ variable "RETENTION_DAYS" {
 
 variable "VOLUME_TAG_NAMES_TO_RETAIN" {
   default = []
-  type = "list"
+  type = list
   description = "List of volume tag names, which will be copied to the snapshot tags from the volume"
 }
 
@@ -36,11 +36,11 @@ variable "cron_expression" {
 }
 
 variable "regions" {
-  type = "list"
+  type = list
   description = "List of regions in which this Lambda function may run. At least one region is required."
 }
 
 variable "timeout" {
-  default = "600"
+  default = 600
   description = "Number of seconds that the snapshotting Lambda is allowed to run. Increase if you have a large number of instances."
 }
